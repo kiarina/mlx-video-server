@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Single-purpose HTTP server for video generation via mlx-video (Apple Silicon / MLX). LTX-2 distilled, single-flight queue, sync + async endpoints."
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "kiarina", email = "kiarinadawa@gmail.com" }]
 dependencies = [
     # LTX-2 distilled generation. Pinned to a known-good commit for reproducibility.
     "mlx-video @ git+https://github.com/Blaizzy/mlx-video.git@87db56a51758fefb748a359b90a5283bb8ba4837",
@@ -13,6 +16,10 @@ dependencies = [
     "pydantic>=2",
     "pillow",
 ]
+
+[project.urls]
+Homepage = "https://github.com/kiarina/mlx-video-server"
+Repository = "https://github.com/kiarina/mlx-video-server"
 
 [project.scripts]
 mlx-video-server = "mlx_video_server.main:run"
