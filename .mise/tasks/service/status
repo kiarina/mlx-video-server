@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#MISE description="Print launchd status and HTTP health"
+set -euo pipefail
+
+LABEL="${MLX_VIDEO_SERVICE_LABEL:-io.github.kiarina.mlx-video-server}"
+PLIST="$HOME/Library/LaunchAgents/${LABEL}.plist"
+DOMAIN="gui/$(id -u)"
+
+launchctl print "${DOMAIN}/${LABEL}"
+echo
+
+# Read port from the installed plist (the <string> after --port)
+PORT=$(grep -A1 '<string>--port</string>' "$PLIST" 2>/dev/null \
+  | grep -o '[0-9]\+' || echo 8800)
+curl -fsS "http://localhost:${PORT}/health"
+echo

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Tail mlx-video-server stdout log"
+set -euo pipefail
+
+tail -f /tmp/mlx-video-server.out.log

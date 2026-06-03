@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+# Local generated files store (default location is outside the repo, but ignore
+# any in-tree store a user might point MLX_VIDEO_FILES_ROOT at).
+/files/
