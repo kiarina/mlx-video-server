@@ -86,6 +86,17 @@ curl -s -o out.mp4 -D - http://127.0.0.1:8800/v1/generate \
   -F 'image=@first_frame.png'
 ```
 
+With generated audio (`generate_audio:true`) — the audio is muxed into the mp4:
+
+```sh
+curl -s -o out.mp4 http://127.0.0.1:8800/v1/generate \
+  -F 'params={"prompt":"a jazz band playing on stage, upbeat music","num_frames":49,"generate_audio":true}'
+
+ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 out.mp4
+# h264,video
+# aac,audio
+```
+
 ### Generate (async)
 
 ```
@@ -100,10 +111,10 @@ When a job reaches `completed`, use its `file_id` with the files API.
 ### Files
 
 ```
-GET    /v1/files               -> [{file_id, mode, prompt, params, has_audio, video_bytes, created_at, timings}]
-GET    /v1/files/{file_id}     -> mp4 download
-GET    /v1/files/{file_id}/audio -> wav (only when audio was produced)
-DELETE /v1/files/{file_id}     -> delete the artifact directory
+GET    /v1/files                  -> [{file_id, mode, prompt, params, has_audio, video_bytes, created_at, timings}]
+GET    /v1/files/{file_id}         -> artifact metadata
+GET    /v1/files/{file_id}/download -> mp4 download (audio is muxed in when produced)
+DELETE /v1/files/{file_id}         -> delete the artifact directory
 ```
 
 ### Health
@@ -135,8 +146,7 @@ the cap; an `audio` file (A2V) and `generate_audio` cannot be combined.
 
 ```
 ${files_root}/{file_id}/
-  ├── video.mp4
-  ├── audio.wav          # only when audio was produced
+  ├── video.mp4          # audio is muxed in when produced
   ├── input_image.*      # saved inputs (provenance)
   ├── input_end_image.*
   ├── input_audio.*

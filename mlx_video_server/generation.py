@@ -84,9 +84,13 @@ def run_generation(job: Job, settings: Settings, store) -> dict:
     end_image = _stage(job.end_image_path, fdir, "input_end_image")
     audio_file = _stage(job.audio_path, fdir, "input_audio")
 
-    has_audio_output = audio_file is not None or params.generate_audio
+    wants_audio = audio_file is not None or params.generate_audio
     video_path = store.video_path(file_id)
-    audio_out = str(store.audio_path(file_id)) if has_audio_output else None
+    # mlx-video muxes the audio into ``video.mp4`` itself; the separate wav it
+    # also writes is only an intermediate, so we point it inside the artifact
+    # dir and delete it afterwards (no standalone-audio endpoint).
+    audio_wav = store.audio_path(file_id)
+    audio_out = str(audio_wav) if wants_audio else None
 
     seed = params.seed if params.seed is not None else random.randint(0, 2**31 - 1)
 
@@ -116,13 +120,17 @@ def run_generation(job: Job, settings: Settings, store) -> dict:
     if not video_path.exists():
         raise RuntimeError("generation finished but no video file was produced")
 
+    # Audio (when requested) is already muxed into video.mp4; drop the leftover wav.
+    has_audio = wants_audio and audio_wav.exists()
+    audio_wav.unlink(missing_ok=True)
+
     metadata = {
         "file_id": file_id,
         "source_job_id": job.id,
         "mode": job.mode,
         "prompt": params.prompt,
         "params": {**params.model_dump(), "seed": seed},
-        "has_audio": has_audio_output and store.audio_path(file_id).exists(),
+        "has_audio": has_audio,
         "video_bytes": video_path.stat().st_size,
         "created_at": time.time(),
         "timings": {"total_s": total_s},

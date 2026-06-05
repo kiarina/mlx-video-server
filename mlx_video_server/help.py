@@ -59,8 +59,8 @@ def help_payload(settings: Settings) -> dict:
             {"method": "GET", "path": "/v1/jobs", "returns": "recent/active jobs"},
             {"method": "DELETE", "path": "/v1/jobs/{job_id}", "returns": "cancel a queued job (409 if running)"},
             {"method": "GET", "path": "/v1/files", "returns": "list artifacts with metadata"},
-            {"method": "GET", "path": "/v1/files/{file_id}", "returns": "download mp4"},
-            {"method": "GET", "path": "/v1/files/{file_id}/audio", "returns": "download wav (if audio produced)"},
+            {"method": "GET", "path": "/v1/files/{file_id}", "returns": "artifact metadata"},
+            {"method": "GET", "path": "/v1/files/{file_id}/download", "returns": "download mp4 (audio muxed in when produced)"},
             {"method": "DELETE", "path": "/v1/files/{file_id}", "returns": "delete the artifact"},
             {"method": "GET", "path": "/health", "returns": "{status, warm, queue_len, model_repo}"},
         ],
@@ -142,7 +142,7 @@ def help_payload(settings: Settings) -> dict:
                     "-F 'params={\"prompt\":\"the character slowly opens her eyes, looking ahead, gentle smile\",\"num_frames\":49,\"image_strength\":0.7}' "
                     "-F 'image=@portrait.png'"
                 ),
-                "note": "Then GET /v1/jobs/{job_id} until completed, and GET /v1/files/{file_id}.",
+                "note": "Then GET /v1/jobs/{job_id} until completed, and GET /v1/files/{file_id}/download.",
             },
             {
                 "title": "Audio-to-video",

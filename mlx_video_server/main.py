@@ -218,22 +218,23 @@ async def list_files(request: Request) -> list[FileOut]:
 
 
 @app.get("/v1/files/{file_id}", dependencies=PROTECTED)
+async def get_file(request: Request, file_id: str) -> FileOut:
+    """Metadata for a single artifact (use ``/download`` for the mp4)."""
+    meta = _store(request).read_metadata(file_id)
+    if meta is None:
+        raise HTTPException(status_code=404, detail="file not found")
+    return FileOut(**_file_fields(meta))
+
+
+@app.get("/v1/files/{file_id}/download", dependencies=PROTECTED)
 async def download_file(request: Request, file_id: str):
+    """The generated mp4 (audio is muxed into it when produced)."""
     store = _store(request)
     if not store.exists(file_id):
         raise HTTPException(status_code=404, detail="file not found")
     return FileResponse(
         store.video_path(file_id), media_type="video/mp4", filename=f"{file_id}.mp4"
     )
-
-
-@app.get("/v1/files/{file_id}/audio", dependencies=PROTECTED)
-async def download_file_audio(request: Request, file_id: str):
-    store = _store(request)
-    audio = store.audio_path(file_id)
-    if not audio.exists():
-        raise HTTPException(status_code=404, detail="audio not found")
-    return FileResponse(audio, media_type="audio/wav", filename=f"{file_id}.wav")
 
 
 @app.delete("/v1/files/{file_id}", dependencies=PROTECTED)
