@@ -85,8 +85,13 @@ def test_async_job_lifecycle(client):
     file_id = done["file_id"]
     assert file_id
 
+    # metadata
+    meta = client.get(f"/v1/files/{file_id}")
+    assert meta.status_code == 200
+    assert meta.json()["file_id"] == file_id
+
     # download
-    dl = client.get(f"/v1/files/{file_id}")
+    dl = client.get(f"/v1/files/{file_id}/download")
     assert dl.status_code == 200
     assert dl.content == b"FAKE_MP4_BYTES"
 
@@ -97,6 +102,7 @@ def test_async_job_lifecycle(client):
     # delete
     assert client.delete(f"/v1/files/{file_id}").status_code == 200
     assert client.get(f"/v1/files/{file_id}").status_code == 404
+    assert client.get(f"/v1/files/{file_id}/download").status_code == 404
 
 
 def test_sync_generate_returns_mp4(client):

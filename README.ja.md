@@ -83,6 +83,17 @@ curl -s -o out.mp4 -D - http://127.0.0.1:8800/v1/generate \
   -F 'image=@first_frame.png'
 ```
 
+音声付き（`generate_audio:true`）— 音声は mp4 に統合される:
+
+```sh
+curl -s -o out.mp4 http://127.0.0.1:8800/v1/generate \
+  -F 'params={"prompt":"a jazz band playing on stage, upbeat music","num_frames":49,"generate_audio":true}'
+
+ffprobe -v error -show_entries stream=codec_type,codec_name -of csv=p=0 out.mp4
+# h264,video
+# aac,audio
+```
+
 ### 生成（非同期）
 
 ```
@@ -97,10 +108,10 @@ DELETE /v1/jobs/{job_id}  -> queued のジョブをキャンセル（running は
 ### Files
 
 ```
-GET    /v1/files                 -> [{file_id, mode, prompt, params, has_audio, video_bytes, created_at, timings}]
-GET    /v1/files/{file_id}       -> mp4 ダウンロード
-GET    /v1/files/{file_id}/audio -> wav（音声生成時のみ）
-DELETE /v1/files/{file_id}       -> 生成物ディレクトリを削除
+GET    /v1/files                    -> [{file_id, mode, prompt, params, has_audio, video_bytes, created_at, timings}]
+GET    /v1/files/{file_id}          -> 生成物のメタデータ
+GET    /v1/files/{file_id}/download -> mp4 ダウンロード（音声生成時は動画に統合済み）
+DELETE /v1/files/{file_id}          -> 生成物ディレクトリを削除
 ```
 
 ### ヘルス
@@ -129,8 +140,7 @@ I2V で動作を起こすには `image_strength` を下げる／"looking at the 
 
 ```
 ${files_root}/{file_id}/
-  ├── video.mp4
-  ├── audio.wav          # 音声生成時のみ
+  ├── video.mp4          # 音声生成時は動画に統合済み
   ├── input_image.*      # 入力の保存（再現性）
   ├── input_end_image.*
   ├── input_audio.*

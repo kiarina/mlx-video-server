@@ -18,6 +18,15 @@ if [[ ! -x "$PYTHON" ]]; then
   exit 1
 fi
 
+# launchd starts with a minimal PATH that omits Homebrew, so mlx-video cannot
+# find ffmpeg (used to mux audio into the mp4). Build a PATH that includes the
+# directory of the ffmpeg we can see now, falling back to common locations.
+FFMPEG_BIN="$(command -v ffmpeg || true)"
+if [[ -z "$FFMPEG_BIN" ]]; then
+  echo "Warning: ffmpeg not found on PATH; audio muxing will be disabled" >&2
+fi
+SERVICE_PATH="${FFMPEG_BIN:+$(dirname "$FFMPEG_BIN"):}/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
 mkdir -p "$HOME/Library/LaunchAgents"
 
 cat > "$PLIST" <<PLIST
@@ -43,6 +52,12 @@ cat > "$PLIST" <<PLIST
 
     <key>WorkingDirectory</key>
     <string>${PROJECT_DIR}</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>${SERVICE_PATH}</string>
+    </dict>
 
     <key>RunAtLoad</key>
     <true/>
